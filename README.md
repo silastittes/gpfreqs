@@ -34,8 +34,7 @@ FLAGS:
 OPTIONS:
     -g <gp_index>        The 0-index position of the three genotype probabilites (GP) in the FORMAT
                          field (eigth column) of the input VCF.
-                                         For example if FORMAT is, 'GT:PL:DP:AD:GP:GQ', input would
-                         be -g 4.
+                         For example if FORMAT is, 'GT:PL:DP:AD:GP:GQ', input would be -g 4.
     -p <popkey>          File containing population information.
                          First three columns must be:
                          - a zero-based index of each individuals position in the vcf
@@ -49,7 +48,6 @@ OPTIONS:
                          0 individual1 pop1
     -v <vcf>             Path to the vcf input file.
 ```
-
 
 # Example
 
