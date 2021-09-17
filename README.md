@@ -49,5 +49,5 @@ OPTIONS:
 target/release/gpfreqs -v example_data/small.vcf.gz -p example_data/pop_key.txt -f
 ```
 
-The vcf file can (and should) by compressed.
+The vcf file can (and should) be compressed.
 
