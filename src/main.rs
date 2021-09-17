@@ -1,0 +1,63 @@
+mod funs;
+use clap::{App, Arg};
+use funs::make_freqs;
+
+fn main() {
+    let matches = App::new("probably freqs")
+        .version("0.0.1")
+        .author("Silas Tittes <silas.tittes@gmail.com>")
+        .about("Use genotype probabilities in a VCF to calculate population genetic statistics.")
+        //.arg(Arg::new("config")
+        //    .short('c')
+        //    .long("config")
+        //    .value_name("FILE")
+        //    .about("Sets a custom config file")
+        //    .takes_value(true))
+        .arg(
+            Arg::new("vcf")
+                .short('v')
+                .takes_value(true)
+                .required(true)
+                .about("Path to the vcf input file."),
+            //.index(1),
+        )
+        .arg(
+            Arg::new("frequency")
+                .short('f')
+                .takes_value(false)
+                .required(false)
+                .about("Returns reference allele frequency rather than ref alt counts."),
+        )
+        .arg(
+            Arg::new("popkey")
+                .short('p')
+                .required(true)
+                .takes_value(true)
+                .about(
+                    "File containing population information. 
+First three columns must be:
+- a zero-based index of each individuals position in the vcf
+(index starts at the first sample, skipping the first 10 fields).
+- the name of each individual as it appears in the vcf file.
+- an ID for which population each individual belongs to. 
+                    
+Must be whitespace separated and without header names.
+for example, a file could be a sample as:
+                    
+0 individual1 pop1
+",
+                ),
+        )
+        .get_matches();
+
+    //let vcf_name = "example_data/small.vcf.gz";
+    let vcf_name = matches.value_of("vcf").unwrap_or("vcf");
+    //let pop_name = "example_data/pop_key.txt";
+    let pop_name = matches.value_of("popkey").unwrap_or("popkey");
+
+    if matches.is_present("frequency") {
+        make_freqs(vcf_name, pop_name, true)
+    } else {
+        make_freqs(vcf_name, pop_name, false)
+    };
+}
