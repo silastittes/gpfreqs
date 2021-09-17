@@ -26,7 +26,7 @@ fn main() {
                 .takes_value(true)
                 .required(true) 
                 .about("The 0-index position of the three genotype probabilites (GP) in the FORMAT field (eigth column) of the input VCF.
-                For example if FORMAT is, 'GT:PL:DP:AD:GP:GQ', input would be -g 4."),
+For example if FORMAT is, 'GT:PL:DP:AD:GP:GQ', input would be -g 4."),
         )
         .arg(
             Arg::new("vcf")
