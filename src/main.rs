@@ -3,10 +3,10 @@ use clap::{App, Arg};
 use funs::make_freqs;
 
 fn main() {
-    let matches = App::new("probably freqs")
+    let matches = App::new("gpfreqs")
         .version("0.0.1")
         .author("Silas Tittes <silas.tittes@gmail.com>")
-        .about("Use genotype probabilities in a VCF to calculate population genetic statistics.")
+        .about("Use genotype probabilities in a VCF to calculate designated population allele frequencies.")
         //.arg(Arg::new("config")
         //    .short('c')
         //    .long("config")
