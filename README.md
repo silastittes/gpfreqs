@@ -14,7 +14,7 @@ cargo build --release
 
 The compiled executable will be available as `target/release/gpfreqs`
 
-#Documentation
+# Documentation
 
 ```
 Use genotype probabilities in a VCF to calculate population genetic statistics.
