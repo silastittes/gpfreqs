@@ -6,7 +6,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 
 //run the whole salami
-pub fn make_freqs(vcf_file: &str, pop_key: &str, frequency: bool) {
+pub fn make_freqs(vcf_file: &str, pop_key: &str, frequency: bool, gp_index: usize) {
     let the_pop_key = process_popkey(pop_key);
     let locus_map = freq_map(&the_pop_key);
 
@@ -24,10 +24,10 @@ pub fn make_freqs(vcf_file: &str, pop_key: &str, frequency: bool) {
 
     if vcf_file.ends_with(".gz") {
         let reader = BufReader::new(GzDecoder::new(f));
-        process_vcf(reader, the_pop_key, frequency);
+        process_vcf(reader, the_pop_key, frequency, gp_index);
     } else {
         let reader = BufReader::new(f);
-        process_vcf(reader, the_pop_key, frequency);
+        process_vcf(reader, the_pop_key, frequency, gp_index);
     }
 }
 
@@ -44,7 +44,7 @@ pub fn process_popkey(file_name: &str) -> HashMap<i32, (String, String)> {
         let line = line.expect("Unable to read line");
         let pop_ind = line_splitter(&line);
         //convert the str to String, then to an integer
-        let pop_id = pop_ind[0].to_owned().to_string().parse::<i32>().unwrap();
+        let pop_id = pop_ind[0].to_string().parse::<i32>().unwrap();
         let ind_id = (pop_ind[1].to_owned(), pop_ind[2].to_owned());
         pop_map.entry(pop_id.to_owned()).or_insert(ind_id);
     }
@@ -70,6 +70,7 @@ pub fn process_vcf<T: BufRead>(
     reader: T,
     pop_map: HashMap<i32, (String, String)>,
     frequency: bool,
+    gp_index: usize,
 ) {
     for line in reader.lines() {
         let line = line.expect("Unable to read line");
@@ -88,7 +89,7 @@ pub fn process_vcf<T: BufRead>(
             let pos = my_line[1];
             my_line.drain(0..9); //only want the genotype columns
 
-            let locus_map = locus_freqs(&pop_map, my_line);
+            let locus_map = locus_freqs(&pop_map, my_line, gp_index);
 
             //sort the vector of population keys to print
             let mut locus_keys: Vec<String> = locus_map.keys().cloned().collect();
@@ -117,12 +118,13 @@ pub fn process_vcf<T: BufRead>(
 pub fn locus_freqs(
     pop_map: &HashMap<i32, (String, String)>,
     my_line: std::vec::Vec<&str>,
+    gp_index: usize,
 ) -> HashMap<String, Vec<f32>> {
     //turn here down into a function?
     let mut locus_map = freq_map(&pop_map);
 
     for pop in my_line.iter().enumerate() {
-        let pop_q = get_qstring(&pop.1);
+        let pop_q = get_qstring(&pop.1, gp_index);
         let pop_gp = p_vec(pop_q);
         //only bi-allelic sites!!
         if pop_gp.len() == 3 {
@@ -174,9 +176,10 @@ pub fn line_splitter(line: &str) -> Vec<&str> {
 }
 
 //split the genotype format string on colon, return the genotype probs
-pub fn get_qstring(line: &str) -> &str {
+//default index position is 4
+pub fn get_qstring(line: &str, gp_pos: usize) -> &str {
     let line_vec: Vec<&str> = line.split(':').collect();
-    line_vec[4]
+    line_vec[gp_pos]
 }
 
 /*
@@ -205,7 +208,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "Unable to open file")]
     fn missing_vcf() {
-        make_freqs("", "", true);
+        make_freqs("", "", true, 4);
     }
 
     #[test]
@@ -222,6 +225,6 @@ mod tests {
         let the_pop_key = process_popkey(testkey);
         let f = File::open(test_vcf).expect("Unable to open file");
         let reader = BufReader::new(GzDecoder::new(f));
-        process_vcf(reader, the_pop_key, true);
+        process_vcf(reader, the_pop_key, true, 4);
     }
 }

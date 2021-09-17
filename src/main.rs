@@ -14,19 +14,27 @@ fn main() {
         //    .about("Sets a custom config file")
         //    .takes_value(true))
         .arg(
+            Arg::new("frequency")
+                .short('f')
+                .takes_value(false)
+                .required(false)
+                .about("Returns reference allele frequency rather than ref alt counts."),
+        )
+        .arg(
+            Arg::new("gp_index")
+                .short('g')
+                .takes_value(true)
+                .required(true) 
+                .about("The 0-index position of the three genotype probabilites (GP) in the FORMAT field (eigth column) of the input VCF.
+                For example if FORMAT is, 'GT:PL:DP:AD:GP:GQ', input would be -g 4."),
+        )
+        .arg(
             Arg::new("vcf")
                 .short('v')
                 .takes_value(true)
                 .required(true)
                 .about("Path to the vcf input file."),
             //.index(1),
-        )
-        .arg(
-            Arg::new("frequency")
-                .short('f')
-                .takes_value(false)
-                .required(false)
-                .about("Returns reference allele frequency rather than ref alt counts."),
         )
         .arg(
             Arg::new("popkey")
@@ -51,13 +59,15 @@ for example, a file could be a sample as:
         .get_matches();
 
     //let vcf_name = "example_data/small.vcf.gz";
-    let vcf_name = matches.value_of("vcf").unwrap_or("vcf");
+    let vcf_name = matches.value_of("vcf").unwrap();
     //let pop_name = "example_data/pop_key.txt";
-    let pop_name = matches.value_of("popkey").unwrap_or("popkey");
+    let pop_name = matches.value_of("popkey").unwrap();
+
+    let gp_index = matches.value_of("gp_index").unwrap().to_string().parse::<usize>().unwrap();
 
     if matches.is_present("frequency") {
-        make_freqs(vcf_name, pop_name, true)
+        make_freqs(vcf_name, pop_name, true, gp_index)
     } else {
-        make_freqs(vcf_name, pop_name, false)
+        make_freqs(vcf_name, pop_name, false, gp_index)
     };
 }
