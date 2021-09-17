@@ -50,5 +50,29 @@ OPTIONS:
     -v <vcf>             Path to the vcf input file.
 ```
 
-The vcf file can (and should) be compressed.
+
+# Example
+
+```
+target/release/gpfreqs -v example_data/small.vcf.gz -p example_data/pop_key.txt -f -g 4 | less -S
+```
+
+This should return
+
+```
+contig position pop1 pop2 pop3 
+Super-Scaffold_48 110  0.5 0.48 0.5
+Super-Scaffold_48 178  0.45918366 0.48 0.43939394
+Super-Scaffold_48 194  0.4489796 0.44 0.43939394
+Super-Scaffold_48 211  NaN NaN NaN
+Super-Scaffold_48 220  0.47959185 0.5 0.4848485
+Super-Scaffold_48 286  0.3265306 0.4 0.3939394
+Super-Scaffold_48 291  0.45918366 0.5 0.5
+Super-Scaffold_48 326  0.39795917 0.42 0.37878788
+Super-Scaffold_48 353  0.68601024 0.6292135 0.700375
+Super-Scaffold_48 361  0.6574183 0.5892373 0.6448177
+Super-Scaffold_48 362  0.7121576 0.6292837 0.7067553
+```
+
+The input VCF file can (and should) be compressed.
 
