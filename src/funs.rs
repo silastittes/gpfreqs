@@ -128,20 +128,19 @@ pub fn locus_freqs(
 
     for pop in my_line.iter().enumerate() {
         let pop_q = get_qstring(&pop.1, gp_index);
-        if pop_q != "" {
-            let pop_gp = p_vec(pop_q);
-            //only bi-allelic sites!!
-            if pop_gp.len() == 3 {
-                //println!("{} {:?}", pop.0, pop_gp);
-                //get the pop. of the current ind.
-                let ind_idx = &(pop_map[&(pop.0 as i32)]).1;
-                let freq_up = locus_map
-                    .entry(ind_idx.to_string())
-                    .or_insert(vec![0.0, 0.0]);
-                //count alleles while accounting for genotype probs
-                freq_up[0] += 2.0 * pop_gp[0] + 1.0 * pop_gp[1];
-                freq_up[1] += 2.0 * pop_gp[2] + 1.0 * pop_gp[1];
-            }
+
+        let pop_gp = p_vec(pop_q);
+        //only bi-allelic sites!!
+        if pop_gp.len() == 3 {
+            //println!("{} {:?}", pop.0, pop_gp);
+            //get the pop. of the current ind.
+            let ind_idx = &(pop_map[&(pop.0 as i32)]).1;
+            let freq_up = locus_map
+                .entry(ind_idx.to_string())
+                .or_insert(vec![0.0, 0.0]);
+            //count alleles while accounting for genotype probs
+            freq_up[0] += 2.0 * pop_gp[0] + 1.0 * pop_gp[1];
+            freq_up[1] += 2.0 * pop_gp[2] + 1.0 * pop_gp[1];
         }
     }
     locus_map
@@ -176,13 +175,18 @@ pub fn get_p(q: f32) -> f32 {
 pub fn p_vec(q_string: &str) -> Vec<f32> {
     //Q = -10*log10(P)
     //P = 10^(-Q/10)
-    let ps: Vec<f32> = q_string
-        .split(",")
-        .map(|x| get_p(x.parse::<f32>().unwrap()))
-        .collect();
-    let p_sum: f32 = ps.iter().sum();
-    let ps_norm = ps.iter().map(|x| x / p_sum).collect();
-    ps_norm
+    let q_split: Vec<&str> = q_string.split(",").collect();
+    if q_split.len() == 3 {
+        let ps: Vec<f32> = q_split
+            .iter()
+            .map(|x| get_p(x.parse::<f32>().unwrap()))
+            .collect();
+        let p_sum: f32 = ps.iter().sum();
+        let ps_norm = ps.iter().map(|x| x / p_sum).collect();
+        ps_norm
+    } else {
+        vec![0.0, 0.0, 0.0]
+    }
 }
 
 //split str on white space into a str vector
