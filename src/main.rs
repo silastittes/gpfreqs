@@ -21,14 +21,6 @@ fn main() {
                 .about("Returns reference allele frequency rather than ref alt counts."),
         )
         .arg(
-            Arg::new("gp_index")
-                .short('g')
-                .takes_value(true)
-                .required(true) 
-                .about("The 0-index position of the three genotype probabilites (GP) in the FORMAT field (eigth column) of the input VCF.
-For example if FORMAT is, 'GT:PL:DP:AD:GP:GQ', input would be -g 4."),
-        )
-        .arg(
             Arg::new("vcf")
                 .short('v')
                 .takes_value(true)
@@ -63,11 +55,11 @@ for example, a file could be a sample as:
     //let pop_name = "example_data/pop_key.txt";
     let pop_name = matches.value_of("popkey").unwrap();
 
-    let gp_index = matches.value_of("gp_index").unwrap().to_string().parse::<usize>().unwrap();
+    //let gp_index = matches.value_of("gp_index").unwrap().to_string().parse::<usize>().unwrap();
 
     if matches.is_present("frequency") {
-        make_freqs(vcf_name, pop_name, true, gp_index)
+        make_freqs(vcf_name, pop_name, true)
     } else {
-        make_freqs(vcf_name, pop_name, false, gp_index)
+        make_freqs(vcf_name, pop_name, false)
     };
 }

@@ -6,7 +6,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 
 //run the whole salami
-pub fn make_freqs(vcf_file: &str, pop_key: &str, frequency: bool, gp_index: usize) {
+pub fn make_freqs(vcf_file: &str, pop_key: &str, frequency: bool) {
     let the_pop_key = process_popkey(pop_key);
     let locus_map = freq_map(&the_pop_key);
 
@@ -24,10 +24,10 @@ pub fn make_freqs(vcf_file: &str, pop_key: &str, frequency: bool, gp_index: usiz
 
     if vcf_file.ends_with(".gz") {
         let reader = BufReader::new(GzDecoder::new(f));
-        process_vcf(reader, the_pop_key, frequency, gp_index);
+        process_vcf(reader, the_pop_key, frequency);
     } else {
         let reader = BufReader::new(f);
-        process_vcf(reader, the_pop_key, frequency, gp_index);
+        process_vcf(reader, the_pop_key, frequency);
     }
 }
 
@@ -70,7 +70,6 @@ pub fn process_vcf<T: BufRead>(
     reader: T,
     pop_map: HashMap<i32, (String, String)>,
     frequency: bool,
-    gp_index: usize,
 ) {
     for line in reader.lines() {
         let line = line.expect("Unable to read line");
@@ -87,29 +86,33 @@ pub fn process_vcf<T: BufRead>(
 
             let contig = my_line[0];
             let pos = my_line[1];
-            my_line.drain(0..9); //only want the genotype columns
+            let format_str = my_line[8];
+            if format_str.contains("GP") {
+                let gp_index = locate_gp(&format_str);
+                my_line.drain(0..9); //only want the genotype columns
 
-            let locus_map = locus_freqs(&pop_map, my_line, gp_index);
+                let locus_map = locus_freqs(&pop_map, my_line, gp_index);
 
-            //sort the vector of population keys to print
-            let mut locus_keys: Vec<String> = locus_map.keys().cloned().collect();
-            locus_keys.sort();
+                //sort the vector of population keys to print
+                let mut locus_keys: Vec<String> = locus_map.keys().cloned().collect();
+                locus_keys.sort();
 
-            //print output as ref allele frequency OR counts of ref and alt alleles
-            print!("{} {} ", contig, pos,);
-            if frequency {
-                for key in locus_keys {
-                    print!(
-                        " {}",
-                        locus_map[&key][0] / (locus_map[&key][1] + locus_map[&key][0]),
-                    );
+                //print output as ref allele frequency OR counts of ref and alt alleles
+                print!("{} {} ", contig, pos,);
+                if frequency {
+                    for key in locus_keys {
+                        print!(
+                            " {}",
+                            locus_map[&key][0] / (locus_map[&key][1] + locus_map[&key][0]),
+                        );
+                    }
+                    println!();
+                } else {
+                    for key in locus_keys {
+                        print!(" {},{}", locus_map[&key][0], locus_map[&key][1],);
+                    }
+                    println!();
                 }
-                println!();
-            } else {
-                for key in locus_keys {
-                    print!(" {},{}", locus_map[&key][0], locus_map[&key][1],);
-                }
-                println!();
             }
         }
     }
@@ -140,6 +143,17 @@ pub fn locus_freqs(
         }
     }
     locus_map
+}
+
+pub fn locate_gp(format: &str) -> usize {
+    //let a = "GT:PL:DP:GP:AD:GQ";
+    let index = format
+        .split(":")
+        .collect::<Vec<&str>>()
+        .iter()
+        .position(|&r| r == "GP")
+        .unwrap();
+    index
 }
 
 //convert the phred-scaled genotype probs to raw probs
@@ -208,7 +222,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "Unable to open file")]
     fn missing_vcf() {
-        make_freqs("", "", true, 4);
+        make_freqs("", "", true);
     }
 
     #[test]
@@ -225,6 +239,6 @@ mod tests {
         let the_pop_key = process_popkey(testkey);
         let f = File::open(test_vcf).expect("Unable to open file");
         let reader = BufReader::new(GzDecoder::new(f));
-        process_vcf(reader, the_pop_key, true, 4);
+        process_vcf(reader, the_pop_key, true);
     }
 }
