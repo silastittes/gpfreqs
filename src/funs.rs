@@ -128,18 +128,20 @@ pub fn locus_freqs(
 
     for pop in my_line.iter().enumerate() {
         let pop_q = get_qstring(&pop.1, gp_index);
-        let pop_gp = p_vec(pop_q);
-        //only bi-allelic sites!!
-        if pop_gp.len() == 3 {
-            //println!("{} {:?}", pop.0, pop_gp);
-            //get the pop. of the current ind.
-            let ind_idx = &(pop_map[&(pop.0 as i32)]).1;
-            let freq_up = locus_map
-                .entry(ind_idx.to_string())
-                .or_insert(vec![0.0, 0.0]);
-            //count alleles while accounting for genotype probs
-            freq_up[0] += 2.0 * pop_gp[0] + 1.0 * pop_gp[1];
-            freq_up[1] += 2.0 * pop_gp[2] + 1.0 * pop_gp[1];
+        if pop_q != "" {
+            let pop_gp = p_vec(pop_q);
+            //only bi-allelic sites!!
+            if pop_gp.len() == 3 {
+                //println!("{} {:?}", pop.0, pop_gp);
+                //get the pop. of the current ind.
+                let ind_idx = &(pop_map[&(pop.0 as i32)]).1;
+                let freq_up = locus_map
+                    .entry(ind_idx.to_string())
+                    .or_insert(vec![0.0, 0.0]);
+                //count alleles while accounting for genotype probs
+                freq_up[0] += 2.0 * pop_gp[0] + 1.0 * pop_gp[1];
+                freq_up[1] += 2.0 * pop_gp[2] + 1.0 * pop_gp[1];
+            }
         }
     }
     locus_map
