@@ -17,14 +17,14 @@ The compiled executable will be available as `target/release/gpfreqs`
 # Documentation
 
 ```
-gpfreqs 0.0.1
+gpfreqs 0.0.2
 
 Silas Tittes <silas.tittes@gmail.com>
 
 Use genotype probabilities in a VCF to calculate designated population allele frequencies.
 
 USAGE:
-    gpfreqs [FLAGS] -g <gp_index> -v <vcf> -p <popkey>
+    gpfreqs [FLAGS] -v <vcf> -p <popkey>
 
 FLAGS:
     -f               Returns reference allele frequency rather than ref alt counts.
@@ -32,27 +32,22 @@ FLAGS:
     -V, --version    Print version information
 
 OPTIONS:
-    -g <gp_index>        The 0-index position of the three genotype probabilites (GP) in the FORMAT
-                         field (eigth column) of the input VCF.
-                         For example if FORMAT is, 'GT:PL:DP:AD:GP:GQ', input would be -g 4.
-    -p <popkey>          File containing population information.
-                         First three columns must be:
-                         - a zero-based index of each individuals position in the vcf
-                         (index starts at the first sample, skipping the first 10 fields).
-                         - the name of each individual as it appears in the vcf file.
-                         - an ID for which population each individual belongs to.
-                         
-                         Must be whitespace separated and without header names.
-                         for example, a file could be a sample as:
-                         
-                         0 individual1 pop1
-    -v <vcf>             Path to the vcf input file.
+    -p <popkey>        File containing population information.
+                       First three columns must be:
+                       - a zero-based index of each individuals position in the vcf
+                       (index starts at the first sample, skipping the first 10 fields).
+                       - the name of each individual as it appears in the vcf file.
+                       - an ID for which population each individual belongs to.
+                       Must be whitespace separated and without header names.
+                       for example, a file could be a sample as:
+                       0 individual1 pop1
+    -v <vcf>           Path to the vcf input file.
 ```
 
 # Example
 
 ```
-target/release/gpfreqs -v example_data/small.vcf.gz -p example_data/pop_key.txt -f -g 4 | less -S
+target/release/gpfreqs -v example_data/small.vcf.gz -p example_data/pop_key.txt -f | less -S
 ```
 
 This should return
@@ -70,6 +65,8 @@ Super-Scaffold_48 326  0.39795917 0.42 0.37878788
 Super-Scaffold_48 353  0.68601024 0.6292135 0.700375
 Super-Scaffold_48 361  0.6574183 0.5892373 0.6448177
 Super-Scaffold_48 362  0.7121576 0.6292837 0.7067553
+Super-Scaffold_48 371  0.57892925 0.5481839 0.5746602
+Super-Scaffold_48 372  0.45155293 0.5141113 0.46304643
 ```
 
 The input VCF file can (and should) be compressed.

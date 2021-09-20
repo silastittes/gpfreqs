@@ -4,7 +4,7 @@ use funs::make_freqs;
 
 fn main() {
     let matches = App::new("gpfreqs")
-        .version("0.0.1")
+        .version("0.0.2")
         .author("Silas Tittes <silas.tittes@gmail.com>")
         .about("Use genotype probabilities in a VCF to calculate designated population allele frequencies.")
         //.arg(Arg::new("config")
@@ -39,11 +39,9 @@ First three columns must be:
 - a zero-based index of each individuals position in the vcf
 (index starts at the first sample, skipping the first 10 fields).
 - the name of each individual as it appears in the vcf file.
-- an ID for which population each individual belongs to. 
-                    
+- an ID for which population each individual belongs to.                   
 Must be whitespace separated and without header names.
-for example, a file could be a sample as:
-                    
+for example, a file could be a sample as:                
 0 individual1 pop1
 ",
                 ),
