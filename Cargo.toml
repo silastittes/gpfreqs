@@ -7,4 +7,5 @@ edition = "2018"
 
 [dependencies]
 flate2 = { version = "1.0.21", features = ["zlib-ng-compat"], default-features = false }
+bgzip = "0.2.1"
 clap = "3.0.0-beta.4"

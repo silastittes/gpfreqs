@@ -2,6 +2,7 @@ extern crate flate2;
 use flate2::read::GzDecoder;
 use std::collections::HashMap;
 //use std::f64::consts::E;
+use bgzip::{BGZFError, BGZFReader};
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
@@ -23,7 +24,9 @@ pub fn make_freqs(vcf_file: &str, pop_key: &str, frequency: bool) {
     let f = File::open(vcf_file).expect("Unable to open file");
 
     if vcf_file.ends_with(".gz") {
-        let reader = BufReader::new(GzDecoder::new(f));
+        //let reader = BufReader::new(GzDecoder::new(f));
+        let reader = BufReader::new(BGZFReader::new(f));
+
         process_vcf(reader, the_pop_key, frequency);
     } else {
         let reader = BufReader::new(f);
@@ -244,7 +247,8 @@ mod tests {
         let testkey = "example_data/pop_key.txt";
         let the_pop_key = process_popkey(testkey);
         let f = File::open(test_vcf).expect("Unable to open file");
-        let reader = BufReader::new(GzDecoder::new(f));
+        //let reader = BufReader::new(GzDecoder::new(f));
+        let reader = BufReader::new(BGZFReader::new(f));
         process_vcf(reader, the_pop_key, true);
     }
 }
