@@ -115,7 +115,7 @@ pub fn process_vcf<T: BufRead>(
                     println!();
                 } else {
                     for key in locus_keys {
-                        print!(" {0},{0}", locus_map[&key][0], locus_map[&key][1],);
+                        print!(" {:.0},{:.0}", locus_map[&key][0], locus_map[&key][1],);
                     }
                     println!();
                 }
