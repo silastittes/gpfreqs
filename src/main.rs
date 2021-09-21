@@ -25,8 +25,18 @@ fn main() {
                 .short('v')
                 .takes_value(true)
                 .required(true)
-                .about("Path to the vcf input file."),
+                .about(
+                    "Path to the vcf input file.
+Files with .gz endings are assumed to be bgz (Blocked GNU Zip Format), not regular gz.
+Use --gzip if the file is a standard compressed"),
             //.index(1),
+        )
+        .arg(
+            Arg::new("gzip")
+                .short('g')
+                .takes_value(false)
+                .required(false)
+                .about("For use when the vcf is compressed with the standard gzip."),
         )
         .arg(
             Arg::new("popkey")
@@ -56,8 +66,16 @@ for example, a file could be a sample as:
     //let gp_index = matches.value_of("gp_index").unwrap().to_string().parse::<usize>().unwrap();
 
     if matches.is_present("frequency") {
-        make_freqs(vcf_name, pop_name, true)
+        if matches.is_present("gzip") {
+            make_freqs(vcf_name, pop_name, true, true)
+        } else {
+            make_freqs(vcf_name, pop_name, true, false)
+        }
     } else {
-        make_freqs(vcf_name, pop_name, false)
+        if matches.is_present("gzip") {
+            make_freqs(vcf_name, pop_name, false, true)
+        } else {
+            make_freqs(vcf_name, pop_name, false, false)
+        }
     };
 }
