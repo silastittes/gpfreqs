@@ -4,7 +4,7 @@ use funs::make_freqs;
 
 fn main() {
     let matches = App::new("gpfreqs")
-        .version("0.0.2")
+        .version("0.0.3")
         .author("Silas Tittes <silas.tittes@gmail.com>")
         .about("Use genotype probabilities in a VCF to calculate designated population allele frequencies.")
         //.arg(Arg::new("config")

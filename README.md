@@ -17,7 +17,7 @@ The compiled executable will be available as `target/release/gpfreqs`
 # Documentation
 
 ```
-gpfreqs 0.0.2
+gpfreqs 0.0.3
 
 Silas Tittes <silas.tittes@gmail.com>
 
@@ -28,6 +28,7 @@ USAGE:
 
 FLAGS:
     -f               Returns reference allele frequency rather than ref alt counts.
+    -g               For use when the vcf is compressed with the standard gzip.
     -h, --help       Print help information
     -V, --version    Print version information
 
@@ -42,12 +43,16 @@ OPTIONS:
                        for example, a file could be a sample as:
                        0 individual1 pop1
     -v <vcf>           Path to the vcf input file.
+                       Files with .gz endings are assumed to be bgz (Blocked GNU Zip Format), not
+                       regular gz.
+                       Use --gzip if the file is a standard compressed
+          Path to the vcf input file.
 ```
 
 # Example
 
 ```
-target/release/gpfreqs -v example_data/small.vcf.gz -p example_data/pop_key.txt -f | less -S
+target/release/gpfreqs -fg -v example_data/small.vcf.gz -p example_data/pop_key.txt | less -S
 ```
 
 This should return
