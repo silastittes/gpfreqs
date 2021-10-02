@@ -1,13 +1,13 @@
-extern crate flate2;
-use flate2::read::GzDecoder;
+use rust_htslib::bcf::header::*;
+use rust_htslib::bcf::{Read, Reader};
 use std::collections::HashMap;
+//use std::convert::TryFrom;
 //use std::f64::consts::E;
-use bgzip::BGZFReader;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
 //run the whole salami
-pub fn make_freqs(vcf_file: &str, pop_key: &str, frequency: bool, gz: bool) {
+pub fn make_freqs(vcf_file: &str, pop_key: &str, frequency: bool) {
     let the_pop_key = process_popkey(pop_key);
     let locus_map = freq_map(&the_pop_key);
 
@@ -20,21 +20,8 @@ pub fn make_freqs(vcf_file: &str, pop_key: &str, frequency: bool, gz: bool) {
         print!("{} ", key,);
     }
     println!();
-
-    let f = File::open(vcf_file).expect("Unable to open file");
-
-    if vcf_file.ends_with(".gz") {
-        if gz {
-            let reader = BufReader::new(GzDecoder::new(f));
-            process_vcf(reader, the_pop_key, frequency);
-        } else {
-            let reader = BufReader::new(BGZFReader::new(f));
-            process_vcf(reader, the_pop_key, frequency);
-        }
-    } else {
-        let reader = BufReader::new(f);
-        process_vcf(reader, the_pop_key, frequency);
-    }
+    let reader = Reader::from_path(&vcf_file).expect("Error opening file.");
+    process_vcf(reader, the_pop_key, frequency);
 }
 
 //make hashmap according to which individuals belong to which pops
@@ -72,70 +59,59 @@ pub fn freq_map(
 
 //count of ref and alternate alleles for each pop
 //(This could use some refactoring)
-pub fn process_vcf<T: BufRead>(
-    reader: T,
-    pop_map: HashMap<i32, (String, String)>,
-    frequency: bool,
-) {
-    for line in reader.lines() {
-        let line = line.expect("Unable to read line");
-        if !line.starts_with("#") {
-            let my_line = line_splitter(&line);
+pub fn process_vcf(mut reader: Reader, pop_map: HashMap<i32, (String, String)>, frequency: bool) {
+    let header = reader.header().clone();
+    for record_result in reader.records() {
+        let record = record_result.expect("Fail to read record");
 
-            let mut my_line = match my_line.len() > 9 {
-                true => my_line,
-                false => panic!(
-                    "VCF site has the incorrect number of fields: {:?}",
-                    my_line.len()
-                ),
-            };
+        let contig_num = header
+            .rid2name(record.rid().expect("fail to read reference id"))
+            .expect("fail to read ref name");
+        let contig = std::str::from_utf8(contig_num).unwrap().to_owned();
+        let pos = record.pos();
 
-            let contig = my_line[0];
-            let pos = my_line[1];
-            let format_str = my_line[8];
-            if format_str.contains("GP") {
-                let gp_index = locate_gp(&format_str);
-                my_line.drain(0..9); //only want the genotype columns
+        let gp_record = record
+            .format(b"GP")
+            .float()
+            .expect("Couldn't retrieve GP field");
 
-                let locus_map = locus_freqs(&pop_map, my_line, gp_index);
+        let locus_map = locus_freqs(&pop_map, gp_record);
 
-                //sort the vector of population keys to print
-                let mut locus_keys: Vec<String> = locus_map.keys().cloned().collect();
-                locus_keys.sort();
+        //sort the vector of population keys to print
+        let mut locus_keys: Vec<String> = locus_map.keys().cloned().collect();
+        locus_keys.sort();
 
-                //print output as ref allele frequency OR counts of ref and alt alleles
-                print!("{} {} ", contig, pos,);
-                if frequency {
-                    for key in locus_keys {
-                        print!(
-                            " {}",
-                            locus_map[&key][0] / (locus_map[&key][1] + locus_map[&key][0]),
-                        );
-                    }
-                    println!();
-                } else {
-                    for key in locus_keys {
-                        print!(" {:.0},{:.0}", locus_map[&key][0], locus_map[&key][1],);
-                    }
-                    println!();
-                }
+        //print output as ref allele frequency OR counts of ref and alt alleles
+        print!("{} {} ", contig, pos,);
+        if frequency {
+            for key in locus_keys {
+                print!(
+                    " {}",
+                    locus_map[&key][0] / (locus_map[&key][1] + locus_map[&key][0]),
+                );
             }
+            println!();
+        } else {
+            for key in locus_keys {
+                print!(" {:.0},{:.0}", locus_map[&key][0], locus_map[&key][1],);
+            }
+            println!();
         }
     }
 }
 
 pub fn locus_freqs(
     pop_map: &HashMap<i32, (String, String)>,
-    my_line: std::vec::Vec<&str>,
-    gp_index: usize,
+    q_vec: rust_htslib::bcf::record::BufferBacked<
+        std::vec::Vec<&[f32]>,
+        rust_htslib::bcf::record::Buffer,
+    >,
 ) -> HashMap<String, Vec<f32>> {
     //turn here down into a function?
     let mut locus_map = freq_map(&pop_map);
 
-    for pop in my_line.iter().enumerate() {
-        let pop_q = get_qstring(&pop.1, gp_index);
-
-        let pop_gp = p_vec(pop_q);
+    for pop in q_vec.iter().enumerate() {
+        let pop_gp = p_vec(pop.1);
         //only bi-allelic sites!!
         if pop_gp.len() == 3 {
             //println!("{} {:?}", pop.0, pop_gp);
@@ -163,6 +139,21 @@ pub fn locate_gp(format: &str) -> usize {
     index
 }
 
+//calculate the vector of genotype probs, normalize to sum to 1 (why don't they already?!?!)
+pub fn p_vec(q_vec: &[f32]) -> Vec<f32> {
+    //Q = -10*log10(P)
+    //P = 10^(-Q/10)
+    //let q_split: Vec<&str> = q_string.split(",").collect();
+    if q_vec.len() == 3 {
+        let ps: Vec<f32> = q_vec.iter().map(|x| get_p(*x)).collect();
+        let p_sum: f32 = ps.iter().sum();
+        let ps_norm = ps.iter().map(|x| x / p_sum).collect();
+        ps_norm
+    } else {
+        vec![0.0, 0.0, 0.0]
+    }
+}
+
 //convert the phred-scaled genotype probs to raw probs
 pub fn get_p(q: f32) -> f32 {
     let base: f32 = 10.0;
@@ -174,24 +165,6 @@ pub fn get_p(q: f32) -> f32 {
         0.0
     } else {
         p
-    }
-}
-
-//calculate the vector of genotype probs, normalize to sum to 1 (why don't they already?!?!)
-pub fn p_vec(q_string: &str) -> Vec<f32> {
-    //Q = -10*log10(P)
-    //P = 10^(-Q/10)
-    let q_split: Vec<&str> = q_string.split(",").collect();
-    if q_split.len() == 3 {
-        let ps: Vec<f32> = q_split
-            .iter()
-            .map(|x| get_p(x.parse::<f32>().unwrap()))
-            .collect();
-        let p_sum: f32 = ps.iter().sum();
-        let ps_norm = ps.iter().map(|x| x / p_sum).collect();
-        ps_norm
-    } else {
-        vec![0.0, 0.0, 0.0]
     }
 }
 
@@ -218,7 +191,7 @@ mod tests {
 
     #[test]
     fn test_zero_vec() {
-        let zero_probs = "0,0,0".to_string();
+        let zero_probs = vec![0.0, 0.0, 0.0];
         let sum_probs: f32 = p_vec(&zero_probs).iter().sum();
         let one = 1.0f32;
         assert_eq!(sum_probs, one)
@@ -226,7 +199,7 @@ mod tests {
 
     #[test]
     fn test_p_vec() {
-        let probs = "4,3,6".to_string();
+        let probs = vec![4.0, 3.0, 6.0];
         let sum_probs: f32 = p_vec(&probs).iter().sum();
         assert_eq!(sum_probs, 1.0)
     }
@@ -234,7 +207,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "Unable to open file")]
     fn missing_vcf() {
-        make_freqs("", "", true, true);
+        make_freqs("", "", true);
     }
 
     #[test]
@@ -249,8 +222,7 @@ mod tests {
         let test_vcf = "example_data/fake.vcf.gz";
         let testkey = "example_data/pop_key.txt";
         let the_pop_key = process_popkey(testkey);
-        let f = File::open(test_vcf).expect("Unable to open file");
-        let reader = BufReader::new(GzDecoder::new(f));
+        let reader = Reader::from_path(test_vcf).expect("Error opening file.");
         //let reader = BufReader::new(BGZFReader::new(f));
         process_vcf(reader, the_pop_key, true);
     }

@@ -66,16 +66,8 @@ for example, a file could be a sample as:
     //let gp_index = matches.value_of("gp_index").unwrap().to_string().parse::<usize>().unwrap();
 
     if matches.is_present("frequency") {
-        if matches.is_present("gzip") {
-            make_freqs(vcf_name, pop_name, true, true)
-        } else {
-            make_freqs(vcf_name, pop_name, true, false)
-        }
+        make_freqs(vcf_name, pop_name, true)
     } else {
-        if matches.is_present("gzip") {
-            make_freqs(vcf_name, pop_name, false, true)
-        } else {
-            make_freqs(vcf_name, pop_name, false, false)
-        }
+        make_freqs(vcf_name, pop_name, false)
     };
 }

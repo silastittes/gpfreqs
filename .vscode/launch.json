@@ -22,7 +22,7 @@
             },
             "args": ["-v", "example_data/small.vcf.gz", 
                     "-p",  "example_data/pop_key.txt",
-                    "-g", "4"],
+                    "-f"],
             "cwd": "${workspaceFolder}"
         },
         {
