@@ -4,7 +4,7 @@ use funs::make_freqs;
 
 fn main() {
     let matches = App::new("gpfreqs")
-        .version("0.0.3")
+        .version("0.0.4")
         .author("Silas Tittes <silas.tittes@gmail.com>")
         .about("Use genotype probabilities in a VCF to calculate designated population allele frequencies.")
         //.arg(Arg::new("config")
@@ -26,17 +26,8 @@ fn main() {
                 .takes_value(true)
                 .required(true)
                 .about(
-                    "Path to the vcf input file.
-Files with .gz endings are assumed to be bgz (Blocked GNU Zip Format), not regular gz.
-Use --gzip if the file is a standard compressed"),
+                    "Path to the vcf input file. Can gzipped (File should end in .gz) or uncompressed."),
             //.index(1),
-        )
-        .arg(
-            Arg::new("gzip")
-                .short('g')
-                .takes_value(false)
-                .required(false)
-                .about("For use when the vcf is compressed with the standard gzip."),
         )
         .arg(
             Arg::new("popkey")

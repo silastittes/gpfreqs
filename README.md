@@ -17,7 +17,7 @@ The compiled executable will be available as `target/release/gpfreqs`
 # Documentation
 
 ```
-gpfreqs 0.0.3
+gpfreqs 0.0.4
 
 Silas Tittes <silas.tittes@gmail.com>
 
@@ -28,7 +28,6 @@ USAGE:
 
 FLAGS:
     -f               Returns reference allele frequency rather than ref alt counts.
-    -g               For use when the vcf is compressed with the standard gzip.
     -h, --help       Print help information
     -V, --version    Print version information
 
@@ -42,36 +41,29 @@ OPTIONS:
                        Must be whitespace separated and without header names.
                        for example, a file could be a sample as:
                        0 individual1 pop1
-    -v <vcf>           Path to the vcf input file.
-                       Files with .gz endings are assumed to be bgz (Blocked GNU Zip Format), not
-                       regular gz.
-                       Use --gzip if the file is a standard compressed
-          Path to the vcf input file.
+    -v <vcf>           Path to the vcf input file. Can gzipped (File should end in .gz) or
+                       uncompressed.
 ```
 
 # Example
 
 ```
-target/release/gpfreqs -fg -v example_data/small.vcf.gz -p example_data/pop_key.txt | less -S
+target/release/gpfreqs -f -v example_data/small.vcf.gz -p example_data/pop_key.txt | less -S
 ```
 
 This should return
 
 ```
 contig position pop1 pop2 pop3 
-Super-Scaffold_48 110  0.5 0.48 0.5
-Super-Scaffold_48 178  0.45918366 0.48 0.43939394
-Super-Scaffold_48 194  0.4489796 0.44 0.43939394
-Super-Scaffold_48 211  NaN NaN NaN
-Super-Scaffold_48 220  0.47959185 0.5 0.4848485
-Super-Scaffold_48 286  0.3265306 0.4 0.3939394
-Super-Scaffold_48 291  0.45918366 0.5 0.5
-Super-Scaffold_48 326  0.39795917 0.42 0.37878788
-Super-Scaffold_48 353  0.68601024 0.6292135 0.700375
-Super-Scaffold_48 361  0.6574183 0.5892373 0.6448177
-Super-Scaffold_48 362  0.7121576 0.6292837 0.7067553
-Super-Scaffold_48 371  0.57892925 0.5481839 0.5746602
-Super-Scaffold_48 372  0.45155293 0.5141113 0.46304643
+Super-Scaffold_48 109  0.5 0.48 0.5
+Super-Scaffold_48 177  0.45918366 0.48 0.43939394
+Super-Scaffold_48 193  0.4489796 0.44 0.43939394
+Super-Scaffold_48 210  NaN NaN NaN
+Super-Scaffold_48 219  0.47959185 0.5 0.4848485
+Super-Scaffold_48 285  0.3265306 0.4 0.3939394
+Super-Scaffold_48 290  0.45918366 0.5 0.5
+Super-Scaffold_48 325  0.39795917 0.42 0.37878788
+Super-Scaffold_48 352  0.68601024 0.6292135 0.700375
 ```
 
 The input VCF file can (and should) be compressed.

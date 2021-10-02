@@ -1,4 +1,3 @@
-use rust_htslib::bcf::header::*;
 use rust_htslib::bcf::{Read, Reader};
 use std::collections::HashMap;
 //use std::convert::TryFrom;
@@ -67,7 +66,9 @@ pub fn process_vcf(mut reader: Reader, pop_map: HashMap<i32, (String, String)>, 
         let contig_num = header
             .rid2name(record.rid().expect("fail to read reference id"))
             .expect("fail to read ref name");
+
         let contig = std::str::from_utf8(contig_num).unwrap().to_owned();
+
         let pos = record.pos();
 
         let gp_record = record
@@ -128,17 +129,6 @@ pub fn locus_freqs(
     locus_map
 }
 
-pub fn locate_gp(format: &str) -> usize {
-    //let a = "GT:PL:DP:GP:AD:GQ";
-    let index = format
-        .split(":")
-        .collect::<Vec<&str>>()
-        .iter()
-        .position(|&r| r == "GP")
-        .unwrap();
-    index
-}
-
 //calculate the vector of genotype probs, normalize to sum to 1 (why don't they already?!?!)
 pub fn p_vec(q_vec: &[f32]) -> Vec<f32> {
     //Q = -10*log10(P)
@@ -172,13 +162,6 @@ pub fn get_p(q: f32) -> f32 {
 pub fn line_splitter(line: &str) -> Vec<&str> {
     let line_vec: Vec<&str> = line.split_whitespace().collect();
     line_vec
-}
-
-//split the genotype format string on colon, return the genotype probs
-//default index position is 4
-pub fn get_qstring(line: &str, gp_pos: usize) -> &str {
-    let line_vec: Vec<&str> = line.split(':').collect();
-    line_vec[gp_pos]
 }
 
 /*
