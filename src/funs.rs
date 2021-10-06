@@ -71,33 +71,35 @@ pub fn process_vcf(mut reader: Reader, pop_map: HashMap<i32, (String, String)>, 
 
         let pos = record.pos();
 
-        let gp_record = record
-            .format(b"GP")
-            .float()
-            .expect("Couldn't retrieve GP field");
+        let gp_record = record.format(b"GP").float();
 
-        let locus_map = locus_freqs(&pop_map, gp_record);
+        match gp_record {
+            Ok(gp_record) => {
+                let locus_map = locus_freqs(&pop_map, gp_record);
 
-        //sort the vector of population keys to print
-        let mut locus_keys: Vec<String> = locus_map.keys().cloned().collect();
-        locus_keys.sort();
+                //sort the vector of population keys to print
+                let mut locus_keys: Vec<String> = locus_map.keys().cloned().collect();
+                locus_keys.sort();
 
-        //print output as ref allele frequency OR counts of ref and alt alleles
-        print!("{} {} ", contig, pos,);
-        if frequency {
-            for key in locus_keys {
-                print!(
-                    " {}",
-                    locus_map[&key][0] / (locus_map[&key][1] + locus_map[&key][0]),
-                );
+                //print output as ref allele frequency OR counts of ref and alt alleles
+                print!("{} {} ", contig, pos,);
+                if frequency {
+                    for key in locus_keys {
+                        print!(
+                            " {}",
+                            locus_map[&key][0] / (locus_map[&key][1] + locus_map[&key][0]),
+                        );
+                    }
+                    println!();
+                } else {
+                    for key in locus_keys {
+                        print!(" {:.0},{:.0}", locus_map[&key][0], locus_map[&key][1],);
+                    }
+                    println!();
+                }
             }
-            println!();
-        } else {
-            for key in locus_keys {
-                print!(" {:.0},{:.0}", locus_map[&key][0], locus_map[&key][1],);
-            }
-            println!();
-        }
+            Err(_) => (),
+        };
     }
 }
 
